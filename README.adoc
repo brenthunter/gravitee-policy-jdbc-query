@@ -1,0 +1,156 @@
+= JDBC Query Policy
+
+== Phases
+
+[cols="4*", options="header"]
+|===
+^|onRequest
+^|onResponse
+^|onMessageRequest
+^|onMessageResponse
+
+^.^| X
+^.^| X
+^.^| Coming soon...
+^.^| Coming soon...
+|===
+
+== Description
+
+You can use the `gravitee-policy-jdbc-query` policy to query a remote database and return a (single or multiple) record set.
+
+NOTE: It should go without saying that database queries are expensive operations and heavily dependent on the network connection between the API Gateway and the 
+database service.  For the best experience, implement an API Gateway close to the database service, and only deploy APIs to those API Gateways (that are close to the database service).
+
+If your query returns no results, then the policy does nothing expect adding the `X-JDBC: no-results` header.
+
+If your query has a SQL syntax error, then the policy also does nothing except adding `X-JDBC: Error processing JDBC - SQL Syntax error` header.  Further error information can be discovered in the logs, or by enabling the "Debug to Headers" toggle. 
+
+Else, a jdbcResponse object will be created from the results of your SQL statement and the header `X-JDBC: success` will be added.  Use the jdbcResponse object to extract desired field values into Context Variables.
+
+Example queries:
+
+----
+SELECT * FROM some_table WHERE id=1
+
+SELECT firstName, lastName FROM some_table WHERE id=1
+
+SELECT firstName, lastName, id, some_column FROM some_table WHERE id={#request.headers['myUserId']}
+----
+
+
+The jdbcResponse object includes a status ```message``` and a ```content``` array (regardless of the number of records retrieved).  Each record is an item in the array.  Each field (or column) specified in your SELECT statement is a key/value pair.
+
+Example jdbcResponse object:
+
+[source, json]
+----
+{
+  "message": "created",
+  "content": [
+	  {
+		"firstName": "Fred",
+		"lastName": "Durst",
+		"id": 1,
+		"some_column": "some_text1"
+	  },
+	  {
+		"firstName": "Serj",
+		"lastName": "Tankian",
+		"id": 2,
+		"some_column": "some_text2"
+	  }
+  ]
+}
+----
+
+For debugging purposes, you can enable Debug to Headers (`jdbcDebugHeaders`) and either the full record set results or SQL Exception will be added to the `X-JDBC-DEBUG-RESPONSE` header.
+
+== Included JDBC Drivers
+
+[cols="2*", options="header"]
+|===
+^.^|mySQL Driver
+^.^|PostgreSQL Driver
+
+^.^| 8.0.33+
+^.^| 42.7.3+
+|===
+
+== Configuration
+
+You can configure the policy with the following options:
+
+[cols="5*", options=header]
+|===
+^| Property
+^| Required
+^| Description
+^| Type
+^| Default
+
+.^|jdbcConnectionString
+^.^|X
+.^|Specify the JDBC connection string
+^.^|string
+^.^| 
+
+.^|jdbcConnectionUsername
+^.^|X
+.^|Specify the JDBC connection username
+^.^|string
+^.^| 
+
+.^|jdbcConnectionPassword
+^.^|X
+.^|Specify the JDBC connection password
+^.^|string
+^.^| 
+
+.^|jdbcQuery
+^.^|X
+.^|Specify the SQL query string. (Supports EL)
+^.^|string
+^.^| 
+
+.^|variables
+^.^|
+.^|The variables to set in the execution context when a valid recordset is returned by your SQL query. (Supports EL)
+^.^|List of variables
+^.^|-
+
+.^|jdbcHeaders
+^.^|
+.^|If enabled, Gravitee will populate the X-JDBC header with the status/outcome of your SQL statement
+^.^|boolean
+^.^| `true`
+
+.^|jdbcDebugHeaders
+^.^|
+.^|If enabled, Gravitee will populate the `X-JDBC-FullResponse` header with the full SQL response/recordset
+^.^|boolean
+^.^| `false`
+
+|===
+
+Example configuration:
+
+[source, json]
+----
+{
+    "policy": "gravitee-policy-jdbc-query",
+    "configuration": {
+        "jdbcConnectionString": "jdbc:mysql://db4free.net:3306/dbtest_database",
+        "jdbcConnectionUsername": "dbtest_user",
+        "jdbcConnectionPassword": "dbtest_pass",
+        "jdbcQuery": "SELECT firstName, lastName FROM some_table WHERE id={#request.headers['myUserId']}",
+        "variables": [
+        	{
+        		"name": "FirstName",
+        		"value": "{#jsonPath(#jdbcResponse.content[0], '$.firstName')}"
+        	}
+        ]
+    }
+}
+----
+
