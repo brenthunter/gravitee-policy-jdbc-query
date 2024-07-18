@@ -22,6 +22,10 @@ You can use the `gravitee-policy-jdbc-query` policy to query a remote database a
 NOTE: It should go without saying that database queries are expensive operations and heavily dependent on the network connection between the API Gateway and the 
 database service.  For the best experience, implement an API Gateway close to the database service, and only deploy APIs to those API Gateways (that are close to the database service).
 
+NOTE: Before using this policy (and in addition to the above note), you may want to think of other options such as storing typical responses as API Properties or using the Gravitee Dictionary feature.
+
+The ```Connection String``` supports the standard JDBC connection syntax, e.g.: ```jdbc:mysql://hostname:3306/database```
+
 If your query returns no results, then the policy does nothing expect adding the `X-JDBC: no-results` header.
 
 If your query has a SQL syntax error, then the policy also does nothing except adding `X-JDBC: Error processing JDBC - SQL Syntax error` header.  Further error information can be discovered in the logs, or by enabling the "Debug to Headers" toggle. 
@@ -39,25 +43,24 @@ SELECT firstName, lastName, id, some_column FROM some_table WHERE id={#request.h
 ----
 
 
-The jdbcResponse object includes a status ```message``` and a ```content``` array (regardless of the number of records retrieved).  Each record is an item in the array.  Each field (or column) specified in your SELECT statement is a key/value pair.
+The jdbcResponse object includes a ```content``` array (regardless of the number of records retrieved).  Each record is an item in the array.  Each field (or column) specified in your SELECT statement is a key/value pair.
 
 Example jdbcResponse object:
 
 [source, json]
 ----
 {
-  "message": "created",
   "content": [
 	  {
+		"id": 1,
 		"firstName": "Fred",
 		"lastName": "Durst",
-		"id": 1,
 		"some_column": "some_text1"
 	  },
 	  {
+		"id": 2,
 		"firstName": "Serj",
 		"lastName": "Tankian",
-		"id": 2,
 		"some_column": "some_text2"
 	  }
   ]
@@ -70,7 +73,7 @@ For debugging purposes, you can enable Debug to Headers (`jdbcDebugHeaders`) and
 
 [cols="2*", options="header"]
 |===
-^.^|mySQL Driver
+^.^|MySQL Driver
 ^.^|PostgreSQL Driver
 
 ^.^| 8.0.33+
