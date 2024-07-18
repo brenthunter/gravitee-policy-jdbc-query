@@ -127,7 +127,7 @@ You can configure the policy with the following options:
 
 .^|jdbcDebugHeaders
 ^.^|
-.^|If enabled, Gravitee will populate the `X-JDBC-FullResponse` header with the full SQL response/recordset
+.^|If enabled, Gravitee will populate the `X-JDBC-DEBUG-RESPONSE` header with the full SQL response/recordset
 ^.^|boolean
 ^.^| `false`
 
