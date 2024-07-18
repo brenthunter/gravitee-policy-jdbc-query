@@ -30,7 +30,7 @@ If your query returns no results, then the policy does nothing expect adding the
 
 If your query has a SQL syntax error, then the policy also does nothing except adding `X-JDBC: Error processing JDBC - SQL Syntax error` header.  Further error information can be discovered in the logs, or by enabling the "Debug to Headers" toggle. 
 
-Else, a jdbcResponse object will be created from the results of your SQL statement and the header `X-JDBC: success` will be added.  Use the jdbcResponse object to extract desired field values into Context Variables.
+Else, a ```jdbcResponse``` object will be created from the results of your SQL statement and the header `X-JDBC: success` will be added.  Use the ```jdbcResponse``` object to extract desired field values into Context Variables.
 
 Example queries:
 
@@ -43,9 +43,9 @@ SELECT firstName, lastName, id, some_column FROM some_table WHERE id={#request.h
 ----
 
 
-The jdbcResponse object includes a ```content``` array (regardless of the number of records retrieved).  Each record is an item in the array.  Each field (or column) specified in your SELECT statement is a key/value pair.
+The ```jdbcResponse``` object includes a ```content``` array (regardless of the number of records retrieved).  Each record is an item in the array.  Each field (or column) specified in your SELECT statement is a key/value pair.
 
-Example jdbcResponse object:
+Example ```jdbcResponse``` object:
 
 [source, json]
 ----

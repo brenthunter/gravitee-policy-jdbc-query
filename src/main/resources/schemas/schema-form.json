@@ -30,7 +30,7 @@
     },
     "jdbcQuery": {
       "title": "Query",
-      "description": "Specify the JDBC query string. (Supports EL and API Properties)",
+      "description": "Specify the JDBC query string. (Supports EL)",
       "type": "string",
       "default": "SELECT some_column FROM some_table WHERE some_column='some_text'"
     },
