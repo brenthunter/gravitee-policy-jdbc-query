@@ -26,7 +26,7 @@ NOTE: Before using this policy (and in addition to the above note), you may want
 
 The Connection String (```jdbcConnectionString```) supports the standard JDBC connection syntax, e.g.: ```jdbc:mysql://hostname:3306/database```
 
-If your query returns no results, then the policy does nothing expect adding the `X-JDBC: no-results` header.
+If your query returns no results, then the policy does nothing except adding the `X-JDBC: no-results` header.
 
 If your query has a SQL syntax error, then the policy also does nothing except adding `X-JDBC: Error processing JDBC - SQL Syntax error` header.  Further error information can be discovered in the logs, or by enabling the "Debug to Headers" toggle. 
 
