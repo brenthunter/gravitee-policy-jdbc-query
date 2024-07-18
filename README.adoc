@@ -24,7 +24,7 @@ database service.  For the best experience, implement an API Gateway close to th
 
 NOTE: Before using this policy (and in addition to the above note), you may want to think of other options such as storing typical responses as API Properties or using the Gravitee Dictionary feature.
 
-The ```Connection String``` supports the standard JDBC connection syntax, e.g.: ```jdbc:mysql://hostname:3306/database```
+The Connection String (```jdbcConnectionString```) supports the standard JDBC connection syntax, e.g.: ```jdbc:mysql://hostname:3306/database```
 
 If your query returns no results, then the policy does nothing expect adding the `X-JDBC: no-results` header.
 
