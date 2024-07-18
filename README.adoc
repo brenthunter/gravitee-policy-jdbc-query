@@ -91,19 +91,19 @@ You can configure the policy with the following options:
 
 .^|jdbcConnectionString
 ^.^|X
-.^|Specify the JDBC connection string
+.^|Specify the JDBC connection string. (Supports EL)
 ^.^|string
 ^.^| 
 
 .^|jdbcConnectionUsername
 ^.^|X
-.^|Specify the JDBC connection username
+.^|Specify the JDBC connection username. (Supports EL)
 ^.^|string
 ^.^| 
 
 .^|jdbcConnectionPassword
 ^.^|X
-.^|Specify the JDBC connection password
+.^|Specify the JDBC connection password. (Supports EL)
 ^.^|string
 ^.^| 
 
@@ -121,7 +121,7 @@ You can configure the policy with the following options:
 
 .^|jdbcHeaders
 ^.^|
-.^|If enabled, Gravitee will populate the X-JDBC header with the status/outcome of your SQL statement
+.^|If enabled, Gravitee will populate the ```X-JDBC``` header with the status/outcome of your SQL statement
 ^.^|boolean
 ^.^| `true`
 

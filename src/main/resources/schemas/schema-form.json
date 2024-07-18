@@ -6,7 +6,7 @@
   "properties": {
     "jdbcConnectionString": {
       "title": "Connection String",
-      "description": "Specify the JDBC connection string. (Supports EL and API Properties)",
+      "description": "Specify the JDBC connection string. (Supports EL)",
       "type": "string",
       "default": "jdbc:mysql://db4free.net:3306/dbtest_database?useSSL=false"
     },
@@ -18,12 +18,12 @@
     },
     "jdbcConnectionUsername": {
       "title": "Username",
-      "description": "Specify the JDBC connection username. (Supports EL and API Properties)",
+      "description": "Specify the JDBC connection username. (Supports EL)",
       "type": "string"
     },
     "jdbcConnectionPassword": {
       "title": "Password",
-      "description": "Specify the JDBC connection password. (Supports EL and API Properties)",
+      "description": "Specify the JDBC connection password. (Supports EL)",
       "type": "string",
       "format": "password",
       "x-schema-form": { "type": "password" }
