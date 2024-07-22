@@ -21,7 +21,7 @@ package io.gravitee.policy.jdbc.exceptions;
  */
 public class JDBCProcessingException extends RuntimeException {
 
-  public JDBCProcessingException(String message) {
-    super(message);
-  }
+    public JDBCProcessingException(String message) {
+        super(message);
+    }
 }
