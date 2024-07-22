@@ -31,12 +31,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class JDBCQueryPolicyConfiguration implements PolicyConfiguration {
 
-  private String jdbcConnectionString;
-  private Boolean jdbcUseSSL = false;
-  private String jdbcConnectionUsername;
-  private String jdbcConnectionPassword;
-  private String jdbcQuery;
-  private List<Variable> variables = new ArrayList<>();
-  private Boolean jdbcHeaders = true;
-  private Boolean jdbcDebugHeaders = false;
+    private String jdbcConnectionString;
+    private Boolean jdbcUseSSL = false;
+    private String jdbcConnectionUsername;
+    private String jdbcConnectionPassword;
+    private String jdbcQuery;
+    private List<Variable> variables = new ArrayList<>();
+    private Boolean jdbcHeaders = true;
+    private Boolean jdbcDebugHeaders = false;
+    private String jdbcCacheResource;
 }

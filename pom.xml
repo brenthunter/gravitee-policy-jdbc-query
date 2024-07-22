@@ -23,7 +23,7 @@
 
     <groupId>io.gravitee.policy</groupId>
     <artifactId>gravitee-policy-jdbc-query</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
     <name>Gravitee.io APIM - Policy - JDBC Query</name>
     <description>Query a remote database and return a (single or multiple) rowset.</description>
@@ -39,7 +39,9 @@
         <gravitee-gateway-api.version>3.5.0</gravitee-gateway-api.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
         <gravitee-common.version>4.4.0</gravitee-common.version>
-        <gravitee-apim.version>4.4.0-SNAPSHOT</gravitee-apim.version>
+        <gravitee-apim.version>4.4.0</gravitee-apim.version>
+        <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
+        <gravitee-resource-cache-provider-api.version>1.4.0</gravitee-resource-cache-provider-api.version>
 
         <jsonassert.version>1.5.1</jsonassert.version>
 
@@ -61,6 +63,11 @@
                 <version>${gravitee-bom.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-api</artifactId>
+                <version>${gravitee-resource-api.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -87,14 +94,26 @@
             <version>${gravitee-common.version}</version>
             <scope>provided</scope>
         </dependency>
-
+        
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-cache-provider-api</artifactId>
+            <version>${gravitee-resource-cache-provider-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        
         <!-- Jackson dependencies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -146,6 +165,12 @@
 			<version>[3.9.2,)</version>
 		</dependency>
 		-->
+		
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.11.0</version>
+		</dependency>
 		
     </dependencies>
 

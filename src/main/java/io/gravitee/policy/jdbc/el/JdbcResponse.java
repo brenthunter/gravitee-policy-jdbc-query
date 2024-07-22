@@ -25,24 +25,22 @@ import java.util.Set;
  * @author Brent Hunter (brent.hunter at graviteesource.com)
  * @author GraviteeSource Team
  */
+
 public class JdbcResponse {
 
-  private final String message;
-  private final ArrayList<Map<String, String>> content;
+    private final String message;
+    private final ArrayList<Map<String, String>> content;
 
-  public JdbcResponse(
-    final String message,
-    final ArrayList<Map<String, String>> content
-  ) {
-    this.message = message;
-    this.content = content;
-  }
+    public JdbcResponse(final String message, final ArrayList<Map<String, String>> content) {
+        this.message = message;
+        this.content = content;
+    }
 
-  public String getMessage() {
-    return message;
-  }
+    public String getMessage() {
+        return message;
+    }
 
-  public ArrayList<Map<String, String>> getContent() {
-    return content;
-  }
+    public ArrayList<Map<String, String>> getContent() {
+        return content;
+    }
 }

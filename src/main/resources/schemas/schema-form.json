@@ -1,79 +1,92 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "id": "urn:jsonschema:io:gravitee:policy:jdbc:configuration:JDBCQueryPolicyConfiguration",
-  "additionalProperties": false,
-  "properties": {
-    "jdbcConnectionString": {
-      "title": "Connection String",
-      "description": "Specify the JDBC connection string. (Supports EL)",
-      "type": "string",
-      "default": "jdbc:mysql://db4free.net:3306/dbtest_database?useSSL=false"
-    },
-    "jdbcUseSSL": {
-      "title": "Use SSL",
-      "description": "Toggle SSL on/off (Coming soon...)",
-      "type": "boolean",
-      "default": false
-    },
-    "jdbcConnectionUsername": {
-      "title": "Username",
-      "description": "Specify the JDBC connection username. (Supports EL)",
-      "type": "string"
-    },
-    "jdbcConnectionPassword": {
-      "title": "Password",
-      "description": "Specify the JDBC connection password. (Supports EL)",
-      "type": "string",
-      "format": "password",
-      "x-schema-form": { "type": "password" }
-    },
-    "jdbcQuery": {
-      "title": "Query",
-      "description": "Specify the JDBC query string. (Supports EL)",
-      "type": "string",
-      "default": "SELECT some_column FROM some_table WHERE some_column='some_text'"
-    },
-    "variables": {
-      "type": "array",
-      "title": "Context variables",
-      "description": "Use 'Context Variables' to extract field values from your SQL response",
-      "items": {
-        "type": "object",
-        "id": "urn:jsonschema:io:gravitee:policy:jdbc:configuration:Variable",
-        "title": "Variable",
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "value": {
-            "title": "Value",
-            "description": "Tip: use array indices (eg: '#jdbcResponse.content[0]') to access the first record from your SQL response",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "id": "urn:jsonschema:io:gravitee:policy:jdbc:configuration:JDBCQueryPolicyConfiguration",
+    "additionalProperties": false,
+    "properties": {
+        "jdbcConnectionString": {
+            "title": "Connection String",
+            "description": "Specify the JDBC connection string. (Supports EL)",
             "type": "string",
-            "default": "{#jsonPath(#jdbcResponse.content[0], '$.fieldName')}"
-          }
+            "default": "jdbc:mysql://host:3306/database?useSSL=false"
+        },
+        "jdbcUseSSL": {
+            "title": "Use SSL",
+            "description": "Toggle SSL on/off (Coming soon...)",
+            "type": "boolean",
+            "default": false
+        },
+        "jdbcConnectionUsername": {
+            "title": "Username",
+            "description": "Specify the JDBC connection username. (Supports EL)",
+            "type": "string"
+        },
+        "jdbcConnectionPassword": {
+            "title": "Password",
+            "description": "Specify the JDBC connection password. (Supports EL)",
+            "type": "string",
+            "format": "password",
+            "x-schema-form": { "type": "password" }
+        },
+        "jdbcQuery": {
+            "title": "Query",
+            "description": "Specify the JDBC query string. (Supports EL)",
+            "type": "string",
+            "default": "SELECT some_column FROM some_table WHERE some_column='some_text'"
+        },
+        "variables": {
+            "type": "array",
+            "title": "Context variables",
+            "description": "Use 'Context Variables' to extract field values from your SQL response",
+            "items": {
+                "type": "object",
+                "id": "urn:jsonschema:io:gravitee:policy:jdbc:configuration:Variable",
+                "title": "Variable",
+                "properties": {
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "value": {
+                        "title": "Value",
+                        "description": "Tip: use array indices (eg: '#jdbcResponse.content[0]') to access the first record from your SQL response",
+                        "type": "string",
+                        "default": "{#jsonPath(#jdbcResponse.content[0], '$.fieldName')}"
+                    }
+                }
+            },
+            "required": ["name", "value"]
+        },
+        "jdbcHeaders": {
+            "title": "Use X-JDBC header(s)",
+            "description": "If enabled, Gravitee will populate the X-JDBC header with the status/outcome of your SQL statement",
+            "type": "boolean",
+            "default": true
+        },
+        "jdbcDebugHeaders": {
+            "title": "Debug to Headers",
+            "description": "If enabled, Gravitee will populate the X-JDBC-DEBUG-RESPONSE header with the full SQL response (or SQL Exception)",
+            "type": "boolean",
+            "default": false
+        },
+        "jdbcCacheResource": {
+            "title": "Cache Resource",
+            "description": "To improve performance, use a Cache Resource to store database responses",
+            "type": "string",
+            "x-schema-form": {
+                "event": {
+                    "name": "fetch-resources",
+                    "regexTypes": "^cache"
+                },
+                "placeholder": "cache-resource-name"
+            },
+            "gioConfig": {
+                "uiType": "resource-type",
+                "uiTypeProps": {
+                    "resourceType": "cache"
+                }
+            }
         }
-      },
-      "required": ["name", "value"]
     },
-    "jdbcHeaders": {
-      "title": "Use X-JDBC header(s)",
-      "description": "If enabled, Gravitee will populate the X-JDBC header with the status/outcome of your SQL statement",
-      "type": "boolean",
-      "default": true
-    },
-    "jdbcDebugHeaders": {
-      "title": "Debug to Headers",
-      "description": "If enabled, Gravitee will populate the X-JDBC-DEBUG-RESPONSE header with the full SQL response (or SQL Exception)",
-      "type": "boolean",
-      "default": false
-    }
-  },
-  "required": [
-    "jdbcConnectionString",
-    "jdbcConnectionUsername",
-    "jdbcConnectionPassword",
-    "jdbcQuery"
-  ]
+    "required": ["jdbcConnectionString", "jdbcConnectionUsername", "jdbcConnectionPassword", "jdbcQuery"]
 }
