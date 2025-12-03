@@ -75,7 +75,7 @@ For debugging purposes, you can enable Debug to Headers (`jdbcDebugHeaders`) and
 
 == Included JDBC Drivers
 
-[cols="3*", options="header"]
+[cols="4*", options="header"]
 |===
 ^.^|MySQL Driver
 ^.^|PostgreSQL Driver
