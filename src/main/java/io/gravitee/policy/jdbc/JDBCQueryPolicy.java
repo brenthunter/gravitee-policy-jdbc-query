@@ -78,7 +78,6 @@ public class JDBCQueryPolicy implements Policy {
     public static final String ATTR_INTERNAL_JDBC_QUERY = "jdbc-query-cache";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
     private final JDBCQueryPolicyConfiguration configuration;
 
     @Override
@@ -108,20 +107,20 @@ public class JDBCQueryPolicy implements Policy {
 
     // TODO:  Support V4-Message APIs ???
     /*
-	@Override
-	public Completable onMessageRequest(MessageExecutionContext ctx) {
-    	return ctx
-      	.request()
-      	.onMessage(message -> executeJdbcAndSQLStatement(ctx.request().headers(), ctx));
-  	}
+  @Override
+  public Completable onMessageRequest(MessageExecutionContext ctx) {
+    return ctx
+      .request()
+      .onMessage(message -> executeJdbcAndSQLStatement(ctx.request().headers(), ctx));
+  }
 
-	@Override
-  	public Completable onMessageResponse(MessageExecutionContext ctx) {
-    	return ctx
-      	.response()
-      	.onMessage(message -> executeJdbcAndSQLStatement(ctx.response().headers(), ctx));
-  	}
-  	*/
+  @Override
+  public Completable onMessageResponse(MessageExecutionContext ctx) {
+    return ctx
+      .response()
+      .onMessage(message -> executeJdbcAndSQLStatement(ctx.response().headers(), ctx));
+  }
+  */
     // TODO: End
 
     /**
@@ -132,71 +131,78 @@ public class JDBCQueryPolicy implements Policy {
      * @throws IOException or RuntimeException that will be managed by the caller.
      */
     private Maybe<Buffer> executeJdbcAndSQLStatement(HttpHeaders headers, HttpExecutionContext ctx) throws IOException {
+        // Perform the JDBC Connection and SQL Query
+
         TemplateEngine tplEngine = ctx.getTemplateEngine();
 
         // Create a new ArrayList to hold the results of the RecordSet results
         ArrayList<Map<String, String>> content = new ArrayList<>();
 
-        // Before we do anything, let's check if a Cache Resource has been defined, then check if the query/response already exists in that Cache Resource...
-        // Check if JDBC Query already exists in request context cache
+        //if (configuration.getJdbcCacheResource() != null) {
+        // If a Cache Resource has been defined, then check if the query/response already exists...
+        // find JDBC Query&Response in request context cache
         JDBCQueryCache jDBCQueryCache = getContextJDBCQueryCache(ctx);
-        log.debug("JDBC Query Policy:  Checking context cache...");
+        log.debug("Checking context cache...");
         if (jDBCQueryCache.contains(tplEngine.getValue(configuration.getJdbcQuery(), String.class))) {
-            log.debug("JDBC Query Policy: Query&Response has already been executed within the current request. Re-using cached response.");
-
-            String jdbcResponseFromCache = MAPPER.writeValueAsString(
-                jDBCQueryCache.get(tplEngine.getValue(configuration.getJdbcQuery(), String.class))
-            );
-            log.debug("JDBC Query Policy: jdbcResponseFromCache (from Cache Resource) = {}", jdbcResponseFromCache);
-
-            //Convert the Cache Element Object back into an ArrayList<Map<String, String>>     <<<  Why do I need to re-convert the Object back into a JSON Object?
-            Gson gson = new Gson();
-            JdbcResponse jsonResponse = gson.fromJson(jdbcResponseFromCache, JdbcResponse.class);
-            log.debug("JDBC Query Policy: jsonResponse.message: {}", jsonResponse.getMessage());
-            log.debug("JDBC Query Policy: jsonResponse.content: {}", jsonResponse.getContent());
-
-            populateContextVariables(ctx, CREATED, jsonResponse.getContent());
-
-            final Buffer JdbcObject = createJdbcResponseObject(jsonResponse.getContent(), headers);
-            log.debug("JDBC Query Policy:  JdbcObject :  {}", JdbcObject);
-
-            // The JDBC Query successfully retrieved results (from Cache), so return a buffer with the results and add the (configurable) headers.
-            return Maybe.just(JdbcObject);
+            log.debug("Query&Response has already been executed within the current request. Re-using cached response.");
+            log.debug("From context cache: {}", jDBCQueryCache.contains(tplEngine.getValue(configuration.getJdbcQuery(), String.class)));
+            //final Buffer JdbcObject = createJdbcResponseObject(
+            //    jDBCQueryCache.get(tplEngine.getValue(configuration.getJdbcQuery(), String.class), headers)
+            //).get();
+            //return Maybe.just(JdbcObject);
+            //return Single.just(jDBCQueryCache.get(tplEngine.getValue(configuration.getJdbcQuery(), String.class)).get());
+            //return Maybe.just(new JdbcObject = createJdbcResponseObject(jDBCQueryCache.get(tplEngine.getValue(configuration.getJdbcQuery(), String.class)).get(), headers);
         }
-        // Check if JDBC Query already exists in policy cache
+        // find JDBC Query&Response in policy cache
         final Cache policyCache = getPolicyJDBCQueryCache(ctx);
         if (policyCache != null) {
-            log.debug("JDBC Query Policy:  Checking policy cache...");
+            log.debug("Checking policy cache...");
             Element element = policyCache.get(tplEngine.getValue(configuration.getJdbcQuery(), String.class));
             if (element != null) {
-                log.debug(
-                    "JDBC Query Policy:  Query&Response has already been executed within the policy level cache. Re-using cached response."
-                );
+                log.debug("Query&Response has already been executed within the policy level cache. Re-using cached response.");
 
                 String jdbcResponseFromCache = MAPPER.writeValueAsString(element.value());
-                log.debug("JDBC Query Policy: jdbcResponseFromCache (from Cache Resource) = {}", jdbcResponseFromCache);
+                log.debug("jdbcResponseFromCache (from Cache Resource) = {}", jdbcResponseFromCache);
 
-                //Convert the Cache Element Object back into an ArrayList<Map<String, String>>     <<<  Why do I need to re-convert the Object back into a JSON Object?
+                //Convert it back into an ArrayList<Map<String, String>> ???
+                // Why do I need to re-convert the Object back into a JSON Object?  Is it not de-serializable?
                 Gson gson = new Gson();
                 JdbcResponse jsonResponse = gson.fromJson(jdbcResponseFromCache, JdbcResponse.class);
-                log.debug("JDBC Query Policy: jsonResponse.message: {}", jsonResponse.getMessage());
-                log.debug("JDBC Query Policy: jsonResponse.content: {}", jsonResponse.getContent());
+                log.debug("jsonResponse.message: {}", jsonResponse.getMessage());
+                log.debug("jsonResponse.content: {}", jsonResponse.getContent());
 
-                populateContextVariables(ctx, CREATED, jsonResponse.getContent());
+                tplEngine.getTemplateContext().setVariable(TEMPLATE_VARIABLE, jsonResponse);
+                // Set context variables
+                if (configuration.getVariables() != null) {
+                    configuration
+                        .getVariables()
+                        .forEach(variable -> {
+                            try {
+                                String extValue = (variable.getValue() != null)
+                                    ? tplEngine.getValue(variable.getValue(), String.class)
+                                    : null;
+                                ctx.setAttribute(variable.getName(), extValue);
+                            } catch (Exception ex) {
+                                // Do nothing
+                                log.error("JDBC Query Policy:  -> Failed to set Variable '{}'!", variable.getName());
+                            }
+                        });
+                }
 
                 final Buffer JdbcObject = createJdbcResponseObject(jsonResponse.getContent(), headers);
-                log.debug("JDBC Query Policy:  JdbcObject :  {}", JdbcObject);
+                log.debug("JDBC Query Policy:  test JdbcObject :  {}", JdbcObject);
 
-                // The JDBC Query successfully retrieved results (from Cache), so return a buffer with the results and add the (configurable) headers.
+                // The JDBC Query successfully retrieved results, so return a buffer with the results and add the (configurable) headers.
                 return Maybe.just(JdbcObject);
             }
         }
-        // END Cache Resource checking.
+        // The JDBC Query successfully retrieved results, so return a buffer with the results and add the (configurable) headers.
+        //return Maybe.just(JdbcObject);
+        //}
 
-        // Perform standard JDBC Connection and Query...
         try {
-            log.info("JDBC Query Policy: About to start JDBC connection....");
-            // TODO:  Need to discover why jdbc driver is not auto-detecting <<< drivers not in classPath?
+            log.debug("About to start JDBC connection....");
+            // TODO:  Need to discover why jdbc driver is not auto-detecting
             try {
                 /*
 				if (
@@ -211,25 +217,36 @@ public class JDBCQueryPolicy implements Policy {
                 if (configuration.getJdbcConnectionString().indexOf("mysql://") > 1) {
                     Class.forName("com.mysql.cj.jdbc.Driver");
                 }
+                if (configuration.getJdbcConnectionString().indexOf("sqlserver://") > 1) {
+                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                }
+                if (configuration.getJdbcConnectionString().indexOf("oracle://") > 1) {
+                    Class.forName("oracle.jdbc.OracleDriver");
+                }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
             // TODO: end
 
-            log.debug("JDBC Query Policy:  Attempting to connect to remote JDBC database service...");
+            log.debug("Attempting to connect to remote JDBC database service...");
+            /*Connection connection = DriverManager.getConnection(
+				configuration.getJdbcConnectionString(),
+				configuration.getJdbcConnectionUsername(),
+				configuration.getJdbcConnectionPassword()
+			);*/
             Connection connection = DriverManager.getConnection(
                 tplEngine.getValue(configuration.getJdbcConnectionString(), String.class),
                 tplEngine.getValue(configuration.getJdbcConnectionUsername(), String.class),
                 tplEngine.getValue(configuration.getJdbcConnectionPassword(), String.class)
             );
-            log.debug("JDBC Query Policy:  Successfully connected (to remote JDBC database service).");
+            log.debug("Successfully connected (to remote JDBC database service).");
 
+            log.debug("SQLQuery (before EL): {}", configuration.getJdbcQuery());
             // Get the jdbcQuery configuration value. (Supports EL)
-            log.debug("JDBC Query Policy:  SQLQuery (before EL): {}", configuration.getJdbcQuery());
             String jdbcQuery = tplEngine.getValue(configuration.getJdbcQuery(), String.class);
-            log.info("JDBC Query Policy:  SQLQuery (after EL): {}", jdbcQuery);
+            log.info("SQLQuery (after EL): {}", jdbcQuery);
 
-            log.debug("JDBC Query Policy:  Executing JDBC query...");
+            log.debug("Executing JDBC query...");
             Statement statement = connection.createStatement();
             ResultSet res = statement.executeQuery(jdbcQuery);
             // Create ResultSetMetaData object so we can also get Field/Column Names (to insert into JdbcResponse.content)
@@ -237,7 +254,7 @@ public class JDBCQueryPolicy implements Policy {
 
             if (isMyResultSetEmpty(res)) {
                 // The JDBC Query produced no results, so return an empty buffer and add the (configurable) header.
-                log.warn("JDBC Query Policy: ** Received empty JDBC Response, so exiting **");
+                log.warn("** Received empty JDBC Response, so exiting **");
                 if (configuration.getJdbcHeaders() == true) {
                     headers.set(X_JDBC_HEADER, NO_RESULTS);
                 }
@@ -245,7 +262,7 @@ public class JDBCQueryPolicy implements Policy {
             }
 
             while (res.next()) {
-                log.debug("JDBC Query Policy:  Looping through results...");
+                log.debug("Looping through results...");
                 Map<String, String> thisMap = new HashMap<>();
                 for (int i = 1; i <= rsmd.getColumnCount(); i++) {
                     thisMap.put(rsmd.getColumnName(i), res.getString(rsmd.getColumnName(i)));
@@ -254,7 +271,7 @@ public class JDBCQueryPolicy implements Policy {
             }
         } catch (SQLSyntaxErrorException e) {
             // The JDBC Query produced an Exception, so return an empty buffer and add the (configurable) headers.
-            log.error("JDBC Query Policy: SQLSyntaxErrorException: {}", e.getMessage());
+            log.error("SQLSyntaxErrorException: {}", e.getMessage());
             if (configuration.getJdbcHeaders() == true) {
                 headers.set(X_JDBC_HEADER, ERROR_PROCESSING_JDBC_SQL_SYNTAX_ERROR);
             }
@@ -264,7 +281,7 @@ public class JDBCQueryPolicy implements Policy {
             return Maybe.empty();
         } catch (SQLException e) {
             // The JDBC Query produced an Exception, so return an empty buffer and add the (configurable) headers.
-            log.error("JDBC Query Policy: SQLException: {}", e.getMessage());
+            log.error("SQLException: {}", e.getMessage());
             if (configuration.getJdbcHeaders() == true) {
                 headers.set(X_JDBC_HEADER, ERROR_PROCESSING_JDBC_SQL_EXCEPTION);
             }
@@ -274,17 +291,38 @@ public class JDBCQueryPolicy implements Policy {
             return Maybe.empty();
         }
 
-        log.debug("JDBC Query Policy:  Final content - {}", content);
-        log.info("JDBC Query Policy: Finished with JDBC database service.");
+        log.debug("Final content - {}", content);
+        log.debug("Finished with JDBC database service.");
 
         final Buffer JdbcObject = createJdbcResponseObject(content, headers);
-        log.debug("JDBC Query Policy:  test JdbcObject :  {}", JdbcObject);
+        log.debug("JdbcObject :  {}", JdbcObject);
 
         // Put response into template variable (=jdbcResponse) for EL (eg: defining Variables/Context Attributes)
         final JdbcResponse jdbcResponse = new JdbcResponse(CREATED, content);
         tplEngine.getTemplateContext().setVariable(TEMPLATE_VARIABLE, jdbcResponse);
 
-        populateContextVariables(ctx, CREATED, content);
+        // Set context variables
+        //if (configuration.getVariables() != null) {
+        if (configuration.getVariables().size() > 0) {
+            configuration
+                .getVariables()
+                .forEach(variable -> {
+                    try {
+                        String extValue = (variable.getValue() != null) ? tplEngine.getValue(variable.getValue(), String.class) : null;
+                        ctx.setAttribute(variable.getName(), extValue);
+                        log.debug("Setting ctxatt '{}' to '{}'", variable.getName(), extValue);
+                    } catch (Exception ex) {
+                        // Do nothing
+                        log.error(" -> Failed to set Variable '{}'!", variable.getName());
+                    }
+                });
+        } else {
+            log.debug(
+                "Since no variables were configured, we will output the full RecordSet response to the 'jdbcResponse' context attribute"
+            );
+            Gson gson = new Gson();
+            ctx.setAttribute("jdbcResponse", gson.toJson(content));
+        }
 
         if (configuration.getJdbcCacheResource() != null) {
             fillJDBCQueryCache(tplEngine.getValue(configuration.getJdbcQuery(), String.class), jDBCQueryCache, policyCache, jdbcResponse);
@@ -310,12 +348,12 @@ public class JDBCQueryPolicy implements Policy {
      * @return a JDBC Response in a buffer
      */
     private Buffer createJdbcResponseObject(ArrayList<Map<String, String>> jsonMap, HttpHeaders headers) {
-        log.debug("JDBC Query Policy: In builder...");
-        log.debug("JDBC Query Policy:  jsonMap = {}", jsonMap);
+        log.debug("In builder...");
+        log.debug("jsonMap = {}", jsonMap);
 
         try {
             final String jsonJDBC = MAPPER.writeValueAsString(jsonMap);
-            log.debug("JDBC Query Policy:  jsonJDBC: {}", jsonJDBC);
+            log.debug("jsonJDBC: {}", jsonJDBC);
 
             if (configuration.getJdbcHeaders() == true) {
                 headers.set(X_JDBC_HEADER, CREATED);
@@ -369,36 +407,6 @@ public class JDBCQueryPolicy implements Policy {
         if (policyCache != null && jdbcResponse != null) {
             CacheElement element = new CacheElement(jdbcQuery, jdbcResponse);
             policyCache.put(element);
-        }
-    }
-
-    /**
-     * Set JDBC Response content into template variable for extracting into Context Variables.
-     *
-     * @param ctx
-     * @param finalResult
-     * @param finalContent
-     */
-    private void populateContextVariables(HttpExecutionContext ctx, String finalResult, ArrayList<Map<String, String>> finalContent) {
-        TemplateEngine tplEngine = ctx.getTemplateEngine();
-
-        // Put response into template variable (=jdbcResponse) for EL (eg: defining Variables/Context Attributes)
-        final JdbcResponse jdbcResponse = new JdbcResponse(finalResult, finalContent);
-        tplEngine.getTemplateContext().setVariable(TEMPLATE_VARIABLE, jdbcResponse);
-
-        // Set context variables
-        if (configuration.getVariables() != null) {
-            configuration
-                .getVariables()
-                .forEach(variable -> {
-                    try {
-                        String extValue = (variable.getValue() != null) ? tplEngine.getValue(variable.getValue(), String.class) : null;
-                        ctx.setAttribute(variable.getName(), extValue);
-                    } catch (Exception ex) {
-                        // Do nothing
-                        log.error("JDBC Query Policy:  -> Failed to set Variable '{}'!", variable.getName());
-                    }
-                });
         }
     }
 }
