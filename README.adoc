@@ -11,13 +11,13 @@
 
 ^.^| X
 ^.^| X
-^.^| 
-^.^| 
+^.^| Coming soon...
+^.^| Coming soon...
 |===
 
 == Description
 
-You can use the ```gravitee-policy-jdbc-query``` policy to query a remote database and return a (single or multiple) record set.
+You can use the `gravitee-policy-jdbc-query` policy to query a remote database and return a (single or multiple) record set.
 
 NOTE: It should go without saying that database queries are expensive operations and heavily dependent on the network connection between the API Gateway and the 
 database service.  For the best experience, implement an API Gateway close to the database service, and only deploy APIs to those API Gateways (that are close to the database service).
@@ -28,9 +28,13 @@ The Connection String (```jdbcConnectionString```) supports the standard JDBC co
 
 If your query returns no results, then the policy does nothing except adding the `X-JDBC: no-results` header.
 
-If your query has a SQL syntax error, then the policy also does nothing except adding ```X-JDBC: Error processing JDBC - SQL Syntax error``` header.  Further error information can be discovered in the logs, or by enabling the "Debug to Headers" toggle. 
+If your query has a SQL syntax error, then the policy also does nothing except adding `X-JDBC: Error processing JDBC - SQL Syntax error` header.  Further error information can be discovered in the logs, or by enabling the "Debug to Headers" toggle. 
 
-Else, a ```jdbcResponse``` object will be created from the results of your SQL statement and the header ``X-JDBC: success``` will be added.  Use the ```jdbcResponse``` object to extract desired field values into Context Variables.
+A ```jdbcResponse``` object will be created from the results of your SQL statement and the header `X-JDBC: success` will be added.  Use the ```jdbcResponse``` object to extract desired field values into Context Variables.  
+
+Important:  if no Variables are configured in the Policy, then the full response will be set in the 'jdbcResponse' context attribute.
+
+TODO: For better performance, a separate JDBC Resource should be created so that this Policy can re-use existing JDBC connections (rather than having to create for every request).
 
 Example queries:
 
@@ -50,7 +54,6 @@ Example ```jdbcResponse``` object:
 [source, json]
 ----
 {
-  "message": "success",
   "content": [
 	  {
 		"id": 1,
@@ -68,17 +71,21 @@ Example ```jdbcResponse``` object:
 }
 ----
 
-For debugging purposes, you can enable Debug to Headers (```jdbcDebugHeaders```) and either the full record set results or SQL Exception will be added to the `X-JDBC-DEBUG-RESPONSE` header.
+For debugging purposes, you can enable Debug to Headers (`jdbcDebugHeaders`) and either the full record set results or SQL Exception will be added to the `X-JDBC-DEBUG-RESPONSE` header.
 
 == Included JDBC Drivers
 
-[cols="2*", options="header"]
+[cols="3*", options="header"]
 |===
 ^.^|MySQL Driver
 ^.^|PostgreSQL Driver
+^.^|Microsoft SQL Server Driver
+^.^|Oracle Driver
 
 ^.^| 8.0.33+
 ^.^| 42.7.3+
+^.^| 13.2.0.jre11
+^.^| 23.26.0.0.0
 |===
 
 == Configuration
@@ -131,7 +138,7 @@ You can configure the policy with the following options:
 
 .^|jdbcDebugHeaders
 ^.^|
-.^|If enabled, Gravitee will populate the ```X-JDBC-DEBUG-RESPONSE``` header with the full SQL response/recordset
+.^|If enabled, Gravitee will populate the `X-JDBC-DEBUG-RESPONSE` header with the full SQL response/recordset
 ^.^|boolean
 ^.^| `false`
 

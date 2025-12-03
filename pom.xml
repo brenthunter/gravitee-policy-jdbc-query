@@ -23,7 +23,7 @@
 
     <groupId>io.gravitee.policy</groupId>
     <artifactId>gravitee-policy-jdbc-query</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.3</version>
     <packaging>jar</packaging>
     <name>Gravitee.io APIM - Policy - JDBC Query</name>
     <description>Query a remote database and return a (single or multiple) rowset.</description>
@@ -113,7 +113,7 @@
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -157,6 +157,16 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>[42.7.3,)</version>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+			<version>13.2.0.jre11</version>
+		</dependency>
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc11</artifactId>
+			<version>23.26.0.0.0</version>
 		</dependency>
         <!--
         <dependency>
@@ -222,22 +232,23 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
-                <version>${maven-plugin-prettier.version}</version>
-                <configuration>
-                    <prettierJavaVersion>${maven-plugin-prettier.prettierjava.version}</prettierJavaVersion>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>${plugin.prettier.goal}</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>1.18.38</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 
